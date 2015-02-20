@@ -1,0 +1,220 @@
+package com.infinitetech.expenses;
+
+import android.app.Activity;
+import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
+import android.content.SharedPreferences;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.View;
+import android.widget.TextView;
+
+import com.github.johnpersano.supertoasts.SuperActivityToast;
+import com.github.johnpersano.supertoasts.SuperToast;
+import com.github.johnpersano.supertoasts.util.Style;
+import com.google.android.gms.common.ConnectionResult;
+import com.google.android.gms.common.SignInButton;
+import com.google.android.gms.common.api.GoogleApiClient;
+import com.google.android.gms.common.api.Scope;
+import com.google.android.gms.plus.Plus;
+import com.google.android.gms.plus.model.people.Person;
+import com.google.api.services.gmail.GmailScopes;
+
+
+public class SignInActivity extends Activity implements  GoogleApiClient.ConnectionCallbacks , GoogleApiClient.OnConnectionFailedListener{
+
+    private static final String TAG = SignInActivity.class.getSimpleName();
+
+    /* Request code used to invoke sign in user interactions. */
+    private static final int RC_SIGN_IN = 0;
+
+    /* Client used to interact with Google APIs. */
+    private GoogleApiClient mGoogleApiClient;
+
+    private Scope GMAIL_SCOPE = new Scope(GmailScopes.GMAIL_COMPOSE);
+
+    /* A flag indicating that a PendingIntent is in progress and prevents
+     * us from starting further intents.
+     */
+    private boolean mIntentInProgress;
+
+    private boolean wantsToExit;
+
+    TextView textView;
+
+    private SignInButton signInButton;
+
+    Person mPerson ;
+
+    private SuperActivityToast superActivityToast ;
+
+    public static final String MONEY_PREFERENCE = "money_sharedPreference";
+
+    SharedPreferences sharedPreferences;
+
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_sign_in);
+
+        /* Initializing the shared preference */
+        sharedPreferences = getSharedPreferences(MONEY_PREFERENCE , Context.MODE_PRIVATE);
+        sharedPreferences.getBoolean("hasVisited" , false);
+
+
+            if (!sharedPreferences.getBoolean("hasVisited" , false)){
+
+            signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+            textView = (TextView) findViewById(R.id.welcomeTextView);
+            mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
+                    .addOnConnectionFailedListener(this)
+                    .addApi(Plus.API)
+                    .addScope(Plus.SCOPE_PLUS_PROFILE)
+                    .addScope(GMAIL_SCOPE)
+                    .build();
+        /*
+        when the user press the button Google authentication is then invoked and the user is prompted to choose an account
+         */
+            signInButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    callSuperToastLoad("Connecting to Google");
+                    mGoogleApiClient.connect();
+                }
+            });
+        }else {
+            startActivity(new Intent(this , MainActivity.class));
+        }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        //Implement an onResume method to connect to Google automatically
+//        if (!mGoogleApiClient.isConnected()){
+//            mGoogleApiClient.connect();
+//        }
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mGoogleApiClient.isConnected()){
+            mGoogleApiClient.disconnect();
+        }
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (!wantsToExit){
+            wantsToExit = true ;
+            callSuperToastAlert("Press back again to Exit");
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        Thread.sleep(2000);
+                        wantsToExit = false ;
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }).start();
+        }else {
+            super.onBackPressed();
+        }
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_sign_in, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+
+
+    @Override
+    public void onConnected(Bundle bundle) {
+        signInButton.setEnabled(false);
+        mPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
+        if (mPerson != null && !sharedPreferences.getBoolean("hasVisited" , false)){
+            superActivityToast.dismiss();
+            callSuperToastNormal(mPerson.getDisplayName() + " fetched successfully");
+            SharedPreferences.Editor e = sharedPreferences.edit();
+            e.putBoolean("hasVisited" , true);
+            e.putString("userName" , mPerson.getDisplayName());
+            e.apply();
+        }
+        // The picture is from Facebook to get the google+ call mPerson.getImage().getUrl
+       startActivity(new Intent(SignInActivity.this , MainActivity.class));
+    }
+
+
+
+    @Override
+    public void onConnectionSuspended(int i) {
+        callSuperToastAlert("Some Error");
+    }
+
+    @Override
+    public void onConnectionFailed(ConnectionResult connectionResult) {
+        if (!mIntentInProgress && connectionResult.hasResolution()){
+            try {
+                mIntentInProgress =  true ;
+                startIntentSenderForResult(connectionResult.getResolution().getIntentSender(),RC_SIGN_IN ,null , 0 , 0 , 0);
+            } catch (IntentSender.SendIntentException e) {
+                mIntentInProgress = false ;
+                mGoogleApiClient.connect();
+            }
+        }
+    }
+
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == RC_SIGN_IN)
+            mIntentInProgress = false ;
+        if (!mGoogleApiClient.isConnecting())
+            mGoogleApiClient.connect();
+    }
+
+    // Super Toast methods for simplicity
+    private void callSuperToastNormal(String Text ,int duration ){
+        SuperToast.create(this, Text, duration, Style.getStyle(Style.BLUE, SuperToast.Animations.FLYIN)).show();
+    }
+
+    private void callSuperToastNormal(String Text) {
+        SuperToast.create(this, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.BLUE, SuperToast.Animations.FLYIN)).show();
+    }
+
+    private void callSuperToastAlert(String Text) {
+        SuperToast.create(this, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FLYIN)).show();
+    }
+
+    private void callSuperToastLoad(String Text){
+        superActivityToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
+        superActivityToast.setText(Text);
+        superActivityToast.setIndeterminate(true);
+        superActivityToast.setProgressIndeterminate(true);
+        superActivityToast.setBackground(SuperToast.Background.PURPLE);
+        superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
+        superActivityToast.show();
+    }
+}
