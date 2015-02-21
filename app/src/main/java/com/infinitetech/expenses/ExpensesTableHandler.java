@@ -8,10 +8,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
-import java.util.Date;
+import org.joda.time.DateTime;
 
 /**
  * Created by Hossam on 2/5/2015.
@@ -66,13 +63,10 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
 
     public Cursor getExpensesOfTheDay(){
         SQLiteDatabase db = this.getReadableDatabase();
-        long[] days = new long[2];
-        try {
-            days = getUnix();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-        return db.rawQuery("select * from " + TABLE_NAME + " where " + EXPENSES_COLUMN_DATE + " > " + days[0] + " and " + EXPENSES_COLUMN_DATE + " < " + days[1] , null );
+        DateTime dateTime = new DateTime().withTimeAtStartOfDay();
+        long startOfDay = dateTime.getMillis() ;
+        long endOfDay = dateTime.plusDays(1).getMillis();
+        return db.rawQuery("select * from " + TABLE_NAME + " where " + EXPENSES_COLUMN_DATE + " > " + startOfDay + " and " + EXPENSES_COLUMN_DATE + " < " + endOfDay , null );
     }
 
     public Cursor getExpense(int id){
@@ -86,7 +80,7 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
     }
 
     public long getUnixTimeStamp(){
-        return new Date().getTime();
+        return new DateTime().getMillis();
     }
 
 
@@ -104,21 +98,5 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
 
     }
      */
-
-    private long[] getUnix() throws ParseException {
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
-        long[] result = new long[2];
-        Calendar c = Calendar.getInstance();
-        c.setTime(simpleDateFormat.parse(simpleDateFormat.format(new Date())));
-        c.add(Calendar.DATE , 1);
-        long nextDay = c.getTimeInMillis();
-        result[1] = nextDay;
-        Log.i(TAG , nextDay+"");
-        c.add(Calendar.DATE , -1);
-        long prevDay = c.getTimeInMillis();
-        result[0] = prevDay;
-        Log.i(TAG , prevDay+"");
-        return result ;
-    }
 
 }

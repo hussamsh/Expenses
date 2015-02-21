@@ -17,10 +17,8 @@ import com.github.johnpersano.supertoasts.util.Style;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
-import com.google.android.gms.common.api.Scope;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
-import com.google.api.services.gmail.GmailScopes;
 
 
 public class SignInActivity extends Activity implements  GoogleApiClient.ConnectionCallbacks , GoogleApiClient.OnConnectionFailedListener{
@@ -33,7 +31,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
     /* Client used to interact with Google APIs. */
     private GoogleApiClient mGoogleApiClient;
 
-    private Scope GMAIL_SCOPE = new Scope(GmailScopes.GMAIL_COMPOSE);
 
     /* A flag indicating that a PendingIntent is in progress and prevents
      * us from starting further intents.
@@ -44,7 +41,7 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
 
     TextView textView;
 
-    private SignInButton signInButton;
+    SignInButton signInButton;
 
     Person mPerson ;
 
@@ -67,7 +64,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
                 .addOnConnectionFailedListener(this)
                 .addApi(Plus.API)
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
-                .addScope(GMAIL_SCOPE)
                 .build();
 
         if (!sharedPreferences.getBoolean("hasVisited", false)) {
@@ -183,9 +179,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
     }
 
     // Super Toast methods for simplicity
-    private void callSuperToastNormal(String Text ,int duration ){
-        SuperToast.create(this, Text, duration, Style.getStyle(Style.BLUE, SuperToast.Animations.FLYIN)).show();
-    }
 
     private void callSuperToastNormal(String Text) {
         SuperToast.create(this, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.BLUE, SuperToast.Animations.FLYIN)).show();

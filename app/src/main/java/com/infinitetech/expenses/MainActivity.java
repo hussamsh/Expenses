@@ -1,11 +1,13 @@
 package com.infinitetech.expenses;
 
+import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.AlarmManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -21,6 +23,8 @@ import com.github.johnpersano.supertoasts.SuperActivityToast;
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
 import com.squareup.picasso.Picasso;
+
+import org.joda.time.DateTime;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -39,6 +43,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     ExpensesTableHandler handler ;
 
+    DateTime dateTime ;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -47,14 +53,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         Button button = (Button) findViewById(R.id.send_button);
         Intent intent = new Intent(this  , EmailSender.class);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(this , 0 , intent , 0);
+        dateTime = new DateTime();
 
         button.setOnClickListener(new View.OnClickListener() {
+            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
             public void onClick(View v) {
                 AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                alarmManager.set(AlarmManager.RTC_WAKEUP , System.currentTimeMillis() + (3 * 1000) , pendingIntent);
-
-            }
+                alarmManager.set(AlarmManager.RTC_WAKEUP , 33
+                        , pendingIntent);
+             }
         });
 
     }
@@ -97,7 +105,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private void setTheView() {
         setTheSpinner();
         setProfilePicture();
-
     }
 
 
@@ -119,8 +126,6 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         textView.setText(userName);
     }
 
-
-
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         switch ((int) parent.getItemIdAtPosition(position)) {
@@ -128,7 +133,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 category = "Food";
                 break;
             case 1:
-                category = "HouseHold";
+                category = "Household";
                 break;
             case 2:
                 category = "Personal";
@@ -179,8 +184,5 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
         superActivityToast.show();
     }
-
-
-
 
 }
