@@ -1,1 +1,1 @@
-include ':app'
+include ':app', ':activation', ':additionnal', ':mail', ':cron4j-2.2.5', ':test'

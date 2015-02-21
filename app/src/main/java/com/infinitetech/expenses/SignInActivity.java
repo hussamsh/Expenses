@@ -62,22 +62,17 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
 
         /* Initializing the shared preference */
         sharedPreferences = getSharedPreferences(MONEY_PREFERENCE , Context.MODE_PRIVATE);
-        sharedPreferences.getBoolean("hasVisited" , false);
 
+        mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
+                .addOnConnectionFailedListener(this)
+                .addApi(Plus.API)
+                .addScope(Plus.SCOPE_PLUS_PROFILE)
+                .addScope(GMAIL_SCOPE)
+                .build();
 
-            if (!sharedPreferences.getBoolean("hasVisited" , false)){
-
+        if (!sharedPreferences.getBoolean("hasVisited", false)) {
             signInButton = (SignInButton) findViewById(R.id.sign_in_button);
             textView = (TextView) findViewById(R.id.welcomeTextView);
-            mGoogleApiClient = new GoogleApiClient.Builder(this).addConnectionCallbacks(this)
-                    .addOnConnectionFailedListener(this)
-                    .addApi(Plus.API)
-                    .addScope(Plus.SCOPE_PLUS_PROFILE)
-                    .addScope(GMAIL_SCOPE)
-                    .build();
-        /*
-        when the user press the button Google authentication is then invoked and the user is prompted to choose an account
-         */
             signInButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -86,17 +81,10 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
                 }
             });
         }else {
+            callSuperToastLoad("Connecting to Google");
+            mGoogleApiClient.connect();
             startActivity(new Intent(this , MainActivity.class));
         }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        //Implement an onResume method to connect to Google automatically
-//        if (!mGoogleApiClient.isConnected()){
-//            mGoogleApiClient.connect();
-//        }
     }
 
     @Override
@@ -154,7 +142,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
 
     @Override
     public void onConnected(Bundle bundle) {
-        signInButton.setEnabled(false);
         mPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
         if (mPerson != null && !sharedPreferences.getBoolean("hasVisited" , false)){
             superActivityToast.dismiss();
@@ -217,4 +204,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
         superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
         superActivityToast.show();
     }
+
+
 }

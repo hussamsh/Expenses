@@ -8,7 +8,12 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/activation" />
+            <option value="$PROJECT_DIR$/additionnal" />
             <option value="$PROJECT_DIR$/app" />
+            <option value="$PROJECT_DIR$/cron4j-2.2.5" />
+            <option value="$PROJECT_DIR$/mail" />
+            <option value="$PROJECT_DIR$/test" />
           </set>
         </option>
       </GradleProjectSettings>
