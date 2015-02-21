@@ -8,6 +8,11 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.util.Log;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
+
 /**
  * Created by Hossam on 2/5/2015.
  */
@@ -22,7 +27,6 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
     public static final String EXPENSES_COLUMN_CATEGORY = "category";
     public static final String EXPENSES_COLUMN_DATE = "date";
     private boolean tableCreated ;
-
     ExpensesTableHandler(Context context){
         super(context , DATABASE_NAME , null , DATABASE_VERSION);
     }
@@ -38,7 +42,6 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
                     EXPENSES_COLUMN_DATE+" integer not null )" );
             tableCreated = true ;
         }
-
     }
 
     @Override
@@ -61,6 +64,17 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
         return true ;
     }
 
+    public Cursor getExpensesOfTheDay(){
+        SQLiteDatabase db = this.getReadableDatabase();
+        long[] days = new long[2];
+        try {
+            days = getUnix();
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return db.rawQuery("select * from " + TABLE_NAME + " where " + EXPENSES_COLUMN_DATE + " > " + days[0] + " and " + EXPENSES_COLUMN_DATE + " < " + days[1] , null );
+    }
+
     public Cursor getExpense(int id){
         SQLiteDatabase db = this.getReadableDatabase();
         return db.rawQuery("select * from " + TABLE_NAME + " where id = " + id + " " , null);
@@ -72,7 +86,7 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
     }
 
     public long getUnixTimeStamp(){
-        return System.currentTimeMillis()/1000L;
+        return new Date().getTime();
     }
 
 
@@ -84,10 +98,27 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
 
 
     /*
+
     make a delete expense method
     public boolean deleteExpense(....){
 
     }
      */
+
+    private long[] getUnix() throws ParseException {
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd/MM/yyyy");
+        long[] result = new long[2];
+        Calendar c = Calendar.getInstance();
+        c.setTime(simpleDateFormat.parse(simpleDateFormat.format(new Date())));
+        c.add(Calendar.DATE , 1);
+        long nextDay = c.getTimeInMillis();
+        result[1] = nextDay;
+        Log.i(TAG , nextDay+"");
+        c.add(Calendar.DATE , -1);
+        long prevDay = c.getTimeInMillis();
+        result[0] = prevDay;
+        Log.i(TAG , prevDay+"");
+        return result ;
+    }
 
 }
