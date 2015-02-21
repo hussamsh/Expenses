@@ -1,0 +1,2 @@
+configurations.create("default")
+artifacts.add("default", file('cron4j-2.2.5.jar'))
