@@ -82,7 +82,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
             }else {
                 callSuperToastLoad("Connecting to Google");
                 mGoogleApiClient.connect();
-                startActivity(new Intent(this , MainActivity.class));
             }
         }else{
             callSuperToastAlert("No network is available");
