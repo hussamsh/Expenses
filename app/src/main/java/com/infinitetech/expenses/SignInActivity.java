@@ -5,6 +5,8 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
 import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -66,21 +68,26 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
                 .addScope(Plus.SCOPE_PLUS_PROFILE)
                 .build();
 
-        if (!sharedPreferences.getBoolean("hasVisited", false)) {
-            signInButton = (SignInButton) findViewById(R.id.sign_in_button);
-            textView = (TextView) findViewById(R.id.welcomeTextView);
-            signInButton.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    callSuperToastLoad("Connecting to Google");
-                    mGoogleApiClient.connect();
-                }
-            });
-        }else {
-            callSuperToastLoad("Connecting to Google");
-            mGoogleApiClient.connect();
-            startActivity(new Intent(this , MainActivity.class));
+        if (isNetworkAvailable()){
+            if (!sharedPreferences.getBoolean("hasVisited", false)) {
+                signInButton = (SignInButton) findViewById(R.id.sign_in_button);
+                textView = (TextView) findViewById(R.id.welcomeTextView);
+                signInButton.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        callSuperToastLoad("Connecting to Google");
+                        mGoogleApiClient.connect();
+                    }
+                });
+            }else {
+                callSuperToastLoad("Connecting to Google");
+                mGoogleApiClient.connect();
+                startActivity(new Intent(this , MainActivity.class));
+            }
+        }else{
+            callSuperToastAlert("No network is available");
         }
+
     }
 
     @Override
@@ -151,7 +158,12 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
        startActivity(new Intent(SignInActivity.this , MainActivity.class));
     }
 
-
+    private boolean isNetworkAvailable() {
+        ConnectivityManager connectivityManager
+                = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo activeNetworkInfo = connectivityManager.getActiveNetworkInfo();
+        return activeNetworkInfo != null && activeNetworkInfo.isConnected();
+    }
 
     @Override
     public void onConnectionSuspended(int i) {
