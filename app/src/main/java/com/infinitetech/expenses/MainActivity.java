@@ -1,14 +1,13 @@
 package com.infinitetech.expenses;
 
-import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.AlarmManager;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.NotificationCompat;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -19,12 +18,12 @@ import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.TextView;
 
-import com.github.johnpersano.supertoasts.SuperActivityToast;
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
 import com.squareup.picasso.Picasso;
 
-import org.joda.time.DateTime;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -37,13 +36,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     private boolean wantsToExit;
 
-    SharedPreferences sharedPreferences ;
-
-    SuperActivityToast superActivityToast ;
-
-    ExpensesTableHandler handler ;
-
-    DateTime dateTime ;
+    static FileOutputStream fileOutputStream ;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,19 +44,36 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         setContentView(R.layout.activity_main);
         setTheView();
         Button button = (Button) findViewById(R.id.send_button);
-        Intent intent = new Intent(this  , EmailSender.class);
+        Intent intent = new Intent(this  , NotificationTask.class);
         final PendingIntent pendingIntent = PendingIntent.getBroadcast(this , 0 , intent , 0);
-        dateTime = new DateTime();
 
+        final NotificationCompat.Builder mBuilder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.drawable.icon_dark_undo)
+                        .setContentTitle("My notification")
+                        .setAutoCancel(true)
+                        .setContentText("Hello World!");
+
+        try {
+            fileOutputStream = openFileOutput("Hello World.pdf" , Context.MODE_PRIVATE);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        mBuilder.setContentIntent(pendingIntent);
+        final NotificationManager mnNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         button.setOnClickListener(new View.OnClickListener() {
-            @TargetApi(Build.VERSION_CODES.KITKAT)
             @Override
+
             public void onClick(View v) {
-                AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-                alarmManager.set(AlarmManager.RTC_WAKEUP , 33
-                        , pendingIntent);
-             }
+                mnNotificationManager.notify(22 , mBuilder.build());
+            }
+
         });
+
+
+//        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+//        alarmManager.set(AlarmManager.RTC_WAKEUP , 33
+//                , pendingIntent);
 
     }
 
@@ -90,7 +100,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     }
 
     public void save(View v){
-        handler = new ExpensesTableHandler(this);
+        ExpensesTableHandler handler = new ExpensesTableHandler(this);
         EditText name = (EditText) findViewById(R.id.expense_editText);
         EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
         handler.insertExpense(name.getText().toString() , Integer.parseInt(cost.getText().toString()) ,
@@ -120,7 +130,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     private void setProfilePicture() {
         CircleImageView circularImageView = (CircleImageView) findViewById(R.id.profile_image);
         Picasso.with(this).load("https://lh5.googleusercontent.com/NIaQOHzHG5OeSRxYJ2tOYi1MC-hJQMuso9Sw7ygH_jU=s591").into(circularImageView);
-        sharedPreferences = getSharedPreferences(SignInActivity.MONEY_PREFERENCE , Context.MODE_PRIVATE) ;
+        SharedPreferences sharedPreferences = getSharedPreferences(SignInActivity.MONEY_PREFERENCE , Context.MODE_PRIVATE) ;
         String userName = sharedPreferences.getString("userName" , "Null");
         TextView textView = (TextView) findViewById(R.id.profile_textView);
         textView.setText(userName);
@@ -175,14 +185,14 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         SuperToast.create(this, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FLYIN)).show();
     }
 
-    private void callSuperToastLoad(String Text){
-        superActivityToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
-        superActivityToast.setText(Text);
-        superActivityToast.setIndeterminate(true);
-        superActivityToast.setProgressIndeterminate(true);
-        superActivityToast.setBackground(SuperToast.Background.PURPLE);
-        superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
-        superActivityToast.show();
-    }
+//    private void callSuperToastLoad(String Text){
+//        superActivityToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
+//        superActivityToast.setText(Text);
+//        superActivityToast.setIndeterminate(true);
+//        superActivityToast.setProgressIndeterminate(true);
+//        superActivityToast.setBackground(SuperToast.Background.PURPLE);
+//        superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
+//        superActivityToast.show();
+//    }
 
 }

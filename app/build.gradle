@@ -29,9 +29,7 @@ dependencies {
     compile 'com.squareup.picasso:picasso:2.5.0'
     compile 'de.hdodenhof:circleimageview:1.2.1'
     compile 'joda-time:joda-time:2.7'
-    compile project(':activation')
-    compile project(':additionnal')
-    compile project(':mail')
+    compile project(':itextpdf-5.5.5')
 }
 
 

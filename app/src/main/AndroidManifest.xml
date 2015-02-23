@@ -32,7 +32,7 @@
         </activity>
 
 
-        <receiver android:name=".EmailSender"/>
+        <receiver android:name=".NotificationTask"/>
 
     </application>
 

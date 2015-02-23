@@ -1,1 +1,1 @@
-include ':app', ':activation', ':additionnal', ':mail', ':test'
+include ':app', ':test', ':itextpdf-5.5.5'
