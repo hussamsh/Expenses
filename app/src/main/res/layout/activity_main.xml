@@ -10,23 +10,33 @@
     tools:context="com.infinitetech.expenses.MainActivity"
     android:orientation="vertical">
 
-    <de.hdodenhof.circleimageview.CircleImageView
-        xmlns:app="http://schemas.android.com/apk/res-auto"
-        android:id="@+id/profile_image"
-        android:layout_width="45dp"
-        android:layout_height="45dp"
-        app:border_width="2dp"
-        app:border_color="#FF000000"
-        android:layout_gravity="right" />
 
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <de.hdodenhof.circleimageview.CircleImageView
+            xmlns:app="http://schemas.android.com/apk/res-auto"
+            android:id="@+id/profile_image"
+            android:layout_width="66dp"
+            android:layout_height="65dp"
+            app:border_width="2dp"
+            app:border_color="#FF000000" />
+
+        <RelativeLayout
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent">
+
+        </RelativeLayout>
+
+    </TableRow>
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="Medium Text"
-        android:id="@+id/profile_textView"
-        android:layout_gravity="right" />
+        android:id="@+id/profile_textView" />
 
     <TextView
         android:layout_width="match_parent"
@@ -34,7 +44,6 @@
         android:textAppearance="?android:attr/textAppearanceMedium"
         android:text="What did you buy ?"
         android:id="@+id/firstTextView"
-        android:layout_gravity="center_horizontal"
         android:gravity="center"
         android:textStyle="bold|italic"
         android:layout_marginBottom="30dp"
@@ -88,4 +97,5 @@
         android:text="send"
         android:id="@+id/send_button"
         android:layout_gravity="center_horizontal" />
+
 </LinearLayout>

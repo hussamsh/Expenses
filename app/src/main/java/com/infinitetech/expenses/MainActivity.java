@@ -1,13 +1,12 @@
 package com.infinitetech.expenses;
 
 import android.app.Activity;
-import android.app.NotificationManager;
-import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
-import android.support.v4.app.NotificationCompat;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -22,8 +21,11 @@ import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
 import com.squareup.picasso.Picasso;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 import de.hdodenhof.circleimageview.CircleImageView;
 
@@ -41,40 +43,16 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
-        setTheView();
-        Button button = (Button) findViewById(R.id.send_button);
-        Intent intent = new Intent(this  , NotificationTask.class);
-        final PendingIntent pendingIntent = PendingIntent.getBroadcast(this , 0 , intent , 0);
 
-        final NotificationCompat.Builder mBuilder =
-                new NotificationCompat.Builder(this)
-                        .setSmallIcon(R.drawable.icon_dark_undo)
-                        .setContentTitle("My notification")
-                        .setAutoCancel(true)
-                        .setContentText("Hello World!");
+        setContentView(R.layout.activity_main);
+        final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) , "Expenses.pdf");
+        setTheView(file);
 
         try {
-            fileOutputStream = openFileOutput("Hello World.pdf" , Context.MODE_PRIVATE);
+            fileOutputStream = new FileOutputStream(file);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-        mBuilder.setContentIntent(pendingIntent);
-        final NotificationManager mnNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-
-            public void onClick(View v) {
-                mnNotificationManager.notify(22 , mBuilder.build());
-            }
-
-        });
-
-
-//        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
-//        alarmManager.set(AlarmManager.RTC_WAKEUP , 33
-//                , pendingIntent);
-
     }
 
     @Override
@@ -103,20 +81,45 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         ExpensesTableHandler handler = new ExpensesTableHandler(this);
         EditText name = (EditText) findViewById(R.id.expense_editText);
         EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
-        handler.insertExpense(name.getText().toString() , Integer.parseInt(cost.getText().toString()) ,
-                category );
-        SuperToast.create(this, "Saved", SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.GREEN ,SuperToast.Animations.SCALE)).show();
-        name.setText("");
-        cost.setText("");
+        boolean handled = false ;
+        try {
+            handled = handler.insertExpense(name.getText().toString(), Integer.parseInt(cost.getText().toString()),
+                    category);
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+        }
+        if (!handled){
+            callSuperToastAlert("Complete all fields");
+        }else{
+            SuperToast.create(this, "Saved", SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.GREEN ,SuperToast.Animations.SCALE)).show();
+                name.setText("");
+                cost.setText("");
 
+        }
 
     }
 
-    private void setTheView() {
+    private void setTheView(final File file) {
         setTheSpinner();
         setProfilePicture();
+        Button saveButton = (Button) findViewById(R.id.save_button);
+        saveButton.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View v) {
+                Intent intent = new Intent();
+                intent.setClass(MainActivity.this , ExpensesPdfFactory.class);
+                MainActivity.this.sendBroadcast(intent);
+                return true ;
+            }
+        });
+        Button sendButton = (Button) findViewById(R.id.send_button);
+        sendButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                sendEmail(file);
+            }
+        });
     }
-
 
     private void setTheSpinner() {
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
@@ -136,6 +139,17 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         textView.setText(userName);
     }
 
+    public void sendEmail(File file){
+            String[] to = {"hussamshhassan@gmail.com"};
+            Intent emailIntent = new Intent(Intent.ACTION_SEND);
+            emailIntent.setData(Uri.parse("mailto:"));
+            emailIntent.setType("text/plain");
+            emailIntent.putExtra(Intent.EXTRA_EMAIL , to);
+            emailIntent.putExtra(Intent.EXTRA_SUBJECT , "Expenses of Day: " + getDate());
+            emailIntent.putExtra(Intent.EXTRA_TEXT , "");
+            emailIntent.putExtra(Intent.EXTRA_STREAM , Uri.fromFile(file));
+            startActivity(Intent.createChooser(emailIntent, "Send Expenses email:..... "));
+    }
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         switch ((int) parent.getItemIdAtPosition(position)) {
@@ -182,17 +196,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     }
 
     private void callSuperToastAlert(String Text) {
-        SuperToast.create(this, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FLYIN)).show();
+        SuperToast.create(this, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FADE)).show();
     }
 
-//    private void callSuperToastLoad(String Text){
-//        superActivityToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
-//        superActivityToast.setText(Text);
-//        superActivityToast.setIndeterminate(true);
-//        superActivityToast.setProgressIndeterminate(true);
-//        superActivityToast.setBackground(SuperToast.Background.PURPLE);
-//        superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
-//        superActivityToast.show();
-//    }
+    private String getDate(){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd\\MM\\yyyy");
+        Date date1 = new Date();
+        return simpleDateFormat.format(date1);
+    }
 
 }

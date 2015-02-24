@@ -17,22 +17,28 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import org.joda.time.DateTime;
+
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * Created by Hossam on 2/22/2015.
  */
-public class NotificationTask extends BroadcastReceiver{
+public class ExpensesPdfFactory extends BroadcastReceiver{
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        createPdfTask createPdfTask = new createPdfTask();
-        createPdfTask.execute(context);
+            createPdfTask createPdfTask = new createPdfTask();
+            createPdfTask.execute(context);
     }
+
 
     private void createPdf(Context context) throws DocumentException {
         Document document = new Document();
         PdfWriter.getInstance(document , MainActivity.fileOutputStream);
         document.open();
-        Paragraph preface = new Paragraph("Expenses");
+        Paragraph preface = new Paragraph("Expenses of:  " + getDate());
         preface.setAlignment(Element.ALIGN_CENTER);
         preface.setSpacingAfter(30);
         document.add(preface);
@@ -43,7 +49,7 @@ public class NotificationTask extends BroadcastReceiver{
             String name = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_NAME));
             double price = c.getDouble(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_COST));
             String category = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_CATEGORY));
-            String date = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_DATE));
+            String date = getFormattedDate(c.getLong(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_DATE)));
             document.add(insertRow(name, price, category, date));
         }
         document.close();
@@ -52,7 +58,7 @@ public class NotificationTask extends BroadcastReceiver{
     private static PdfPTable insertRow (String name , double price , String category , String date) {
         PdfPTable table = new PdfPTable(4);
         table.addCell(new PdfPCell(new Phrase(name)));
-        table.addCell(new PdfPCell(new Phrase(price+"")));
+        table.addCell(new PdfPCell(new Phrase(price + "")));
         table.addCell(new PdfPCell(new Phrase(category)));
         table.addCell(new PdfPCell(new Phrase(date)));
         return table ;
@@ -68,7 +74,24 @@ public class NotificationTask extends BroadcastReceiver{
         return table ;
     }
 
+    private static String getFormattedDate(long unixTime){
+        DateTime dateTime = new DateTime(unixTime);
+        String formatted = "";
+        int hours = dateTime.getHourOfDay();
+        String minutes = dateTime.getMinuteOfDay() > 10 ?"0"+ dateTime.getMinuteOfHour() : dateTime.getMinuteOfHour()+"" ;
+        if ( hours > 12){
+            formatted  += String.valueOf(hours - 12) + ":" + minutes + " PM";
+        }else {
+            formatted += hours + ":" + minutes + " AM";
+        }
+        return formatted;
+    }
 
+    private static String getDate(){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd\\MM\\yyyy");
+        Date date1 = new Date();
+        return simpleDateFormat.format(date1);
+    }
 
     private class createPdfTask extends AsyncTask<Context ,Void ,Void>{
 
@@ -87,12 +110,13 @@ public class NotificationTask extends BroadcastReceiver{
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            callSuperToastAlert("Pdf created" , context);
+            callSuperToastNormal("File created just Hit send", context);
         }
+
     }
 
-    private void callSuperToastAlert(String Text , Context context) {
-        SuperToast.create(context, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FLYIN)).show();
+    private void callSuperToastNormal(String Text, Context context) {
+        SuperToast.create(context, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.GREEN, SuperToast.Animations.SCALE)).show();
     }
 
 }

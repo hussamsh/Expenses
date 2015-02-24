@@ -49,16 +49,19 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
     }
 
     public boolean insertExpense(String name , int cost , String category){
-        SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
-        ContentValues cv = new ContentValues();
+        if (!name.equals("")) {
+            SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
+            ContentValues cv = new ContentValues();
 
-        cv.put(EXPENSES_COLUMN_NAME , name);
-        cv.put(EXPENSES_COLUMN_COST, cost);
-        cv.put(EXPENSES_COLUMN_CATEGORY , category);
-        cv.put(EXPENSES_COLUMN_DATE , getUnixTimeStamp());
+            cv.put(EXPENSES_COLUMN_NAME , name);
+            cv.put(EXPENSES_COLUMN_COST, cost);
+            cv.put(EXPENSES_COLUMN_CATEGORY , category);
+            cv.put(EXPENSES_COLUMN_DATE , getUnixTimeStamp());
 
-        sqLiteDatabase.insert(TABLE_NAME , null , cv);
-        return true ;
+            sqLiteDatabase.insert(TABLE_NAME , null , cv);
+            return true ;
+        }
+        return false ;
     }
 
     public Cursor getExpensesOfTheDay(){
