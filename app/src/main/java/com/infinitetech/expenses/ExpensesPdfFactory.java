@@ -3,7 +3,6 @@ package com.infinitetech.expenses;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.database.Cursor;
 import android.os.AsyncTask;
 
 import com.github.johnpersano.supertoasts.SuperToast;
@@ -16,8 +15,6 @@ import com.itextpdf.text.Phrase;
 import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
-
-import org.joda.time.DateTime;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -36,7 +33,7 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
 
     private void createPdf(Context context) throws DocumentException {
         Document document = new Document();
-        PdfWriter.getInstance(document , MainActivity.fileOutputStream);
+        PdfWriter.getInstance(document , MainActivity.getFileOutputStream());
         document.open();
         Paragraph preface = new Paragraph("Expenses of:  " + getDate());
         preface.setAlignment(Element.ALIGN_CENTER);
@@ -44,48 +41,32 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
         document.add(preface);
         document.add(insertMainRow());
         ExpensesTableHandler handler = new ExpensesTableHandler(context);
-        Cursor c = handler.getExpensesOfTheDay();
-        while (c.moveToNext()){
-            String name = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_NAME));
-            double price = c.getDouble(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_COST));
-            String category = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_CATEGORY));
-            String date = getFormattedDate(c.getLong(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_DATE)));
-            document.add(insertRow(name, price, category, date));
+        for (Expense expense : handler.getExpensesOfTheDay()) {
+            document.add(insertRow(expense));
         }
         document.close();
     }
 
-    private static PdfPTable insertRow (String name , double price , String category , String date) {
+    private static PdfPTable insertRow (Expense expense) {
         PdfPTable table = new PdfPTable(4);
-        table.addCell(new PdfPCell(new Phrase(name)));
-        table.addCell(new PdfPCell(new Phrase(price + "")));
-        table.addCell(new PdfPCell(new Phrase(category)));
-        table.addCell(new PdfPCell(new Phrase(date)));
+        table.addCell(new PdfPCell(new Phrase(expense.getName())));
+        table.addCell(new PdfPCell(new Phrase(expense.getPrice() + "")));
+        table.addCell(new PdfPCell(new Phrase(expense.getCategory())));
+        table.addCell(new PdfPCell(new Phrase(expense.getFormattedDate())));
         return table ;
     }
 
     private static PdfPTable insertMainRow(){
         PdfPTable table = new PdfPTable(4);
         table.addCell(new PdfPCell(new Phrase("Name")));
-        table.addCell(new PdfPCell(new Phrase("Cost")));
+        table.addCell(new PdfPCell(new Phrase("Price")));
         table.addCell(new PdfPCell(new Phrase("Category")));
         table.addCell(new PdfPCell(new Phrase("Date")));
         table.setSpacingAfter(15);
         return table ;
     }
 
-    private static String getFormattedDate(long unixTime){
-        DateTime dateTime = new DateTime(unixTime);
-        String formatted = "";
-        int hours = dateTime.getHourOfDay();
-        String minutes = dateTime.getMinuteOfDay() > 10 ?"0"+ dateTime.getMinuteOfHour() : dateTime.getMinuteOfHour()+"" ;
-        if ( hours > 12){
-            formatted  += String.valueOf(hours - 12) + ":" + minutes + " PM";
-        }else {
-            formatted += hours + ":" + minutes + " AM";
-        }
-        return formatted;
-    }
+
 
     private static String getDate(){
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd\\MM\\yyyy");

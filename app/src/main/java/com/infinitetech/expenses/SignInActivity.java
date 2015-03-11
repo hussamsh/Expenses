@@ -47,12 +47,11 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
 
     Person mPerson ;
 
-    private SuperActivityToast superActivityToast ;
+    private SuperActivityToast loadingToast;
 
-    public static final String MONEY_PREFERENCE = "money_sharedPreference";
+    private static final String MONEY_PREFERENCE = "money_sharedPreference";
 
     SharedPreferences sharedPreferences;
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -69,7 +68,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
                 .build();
 
         if (isNetworkAvailable()){
-            if (!sharedPreferences.getBoolean("hasVisited", false)) {
                 signInButton = (SignInButton) findViewById(R.id.sign_in_button);
                 textView = (TextView) findViewById(R.id.welcomeTextView);
                 signInButton.setOnClickListener(new View.OnClickListener() {
@@ -79,10 +77,6 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
                         mGoogleApiClient.connect();
                     }
                 });
-            }else {
-                callSuperToastLoad("Connecting to Google");
-                mGoogleApiClient.connect();
-            }
         }else{
             callSuperToastAlert("No network is available");
         }
@@ -145,16 +139,13 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
     @Override
     public void onConnected(Bundle bundle) {
         mPerson = Plus.PeopleApi.getCurrentPerson(mGoogleApiClient);
-        if (mPerson != null && !sharedPreferences.getBoolean("hasVisited" , false)){
-            superActivityToast.dismiss();
-            callSuperToastNormal(mPerson.getDisplayName() + " fetched successfully");
-            SharedPreferences.Editor e = sharedPreferences.edit();
-            e.putBoolean("hasVisited" , true);
-            e.putString("userName" , mPerson.getDisplayName());
-            e.apply();
-        }
-        // The picture is from Facebook to get the google+ call mPerson.getImage().getUrl
-       startActivity(new Intent(SignInActivity.this , MainActivity.class));
+        loadingToast.dismiss();
+        callSuperToastNormal(mPerson.getDisplayName() + " fetched successfully");
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        e.putString("userName" , mPerson.getDisplayName());
+        e.apply();
+        startActivity(new Intent(SignInActivity.this , MainActivity.class));
+        finish();
     }
 
     private boolean isNetworkAvailable() {
@@ -200,14 +191,16 @@ public class SignInActivity extends Activity implements  GoogleApiClient.Connect
     }
 
     private void callSuperToastLoad(String Text){
-        superActivityToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
-        superActivityToast.setText(Text);
-        superActivityToast.setIndeterminate(true);
-        superActivityToast.setProgressIndeterminate(true);
-        superActivityToast.setBackground(SuperToast.Background.PURPLE);
-        superActivityToast.setTextSize(SuperToast.TextSize.SMALL);
-        superActivityToast.show();
+        loadingToast = new SuperActivityToast(this , SuperToast.Type.PROGRESS);
+        loadingToast.setText(Text);
+        loadingToast.setIndeterminate(true);
+        loadingToast.setProgressIndeterminate(true);
+        loadingToast.setBackground(SuperToast.Background.PURPLE);
+        loadingToast.setTextSize(SuperToast.TextSize.SMALL);
+        loadingToast.show();
     }
 
-
+    public static String getMoneyPreference() {
+        return MONEY_PREFERENCE;
+    }
 }

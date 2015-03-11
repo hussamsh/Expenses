@@ -10,6 +10,8 @@ import android.util.Log;
 
 import org.joda.time.DateTime;
 
+import java.util.ArrayList;
+
 /**
  * Created by Hossam on 2/5/2015.
  */
@@ -48,28 +50,39 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
         onCreate(db);
     }
 
-    public boolean insertExpense(String name , int cost , String category){
-        if (!name.equals("")) {
+    public void insertExpense(Expense expense){
             SQLiteDatabase sqLiteDatabase = this.getWritableDatabase();
             ContentValues cv = new ContentValues();
 
-            cv.put(EXPENSES_COLUMN_NAME , name);
-            cv.put(EXPENSES_COLUMN_COST, cost);
-            cv.put(EXPENSES_COLUMN_CATEGORY , category);
-            cv.put(EXPENSES_COLUMN_DATE , getUnixTimeStamp());
+            cv.put(EXPENSES_COLUMN_NAME , expense.getName());
+            cv.put(EXPENSES_COLUMN_COST, expense.getPrice());
+            cv.put(EXPENSES_COLUMN_CATEGORY , expense.getCategory());
+            cv.put(EXPENSES_COLUMN_DATE , expense.getDate());
 
             sqLiteDatabase.insert(TABLE_NAME , null , cv);
-            return true ;
-        }
-        return false ;
     }
 
-    public Cursor getExpensesOfTheDay(){
+    public ArrayList<Expense> getExpensesBetween(long start , long end) {
         SQLiteDatabase db = this.getReadableDatabase();
+        ArrayList<Expense> expenses = new ArrayList<>();
+        Cursor c = db.rawQuery("select * from " + TABLE_NAME + " where " + EXPENSES_COLUMN_DATE + " > " + start + " and " + EXPENSES_COLUMN_DATE + " < " + end, null);
+        while (c.moveToNext()) {
+            String name = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_NAME));
+            double price = c.getDouble(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_COST));
+            String category = c.getString(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_CATEGORY));
+            long date = c.getLong(c.getColumnIndex(ExpensesTableHandler.EXPENSES_COLUMN_DATE));
+            expenses.add(new Expense(name , price , category , date));
+        }
+        c.close();
+        db.close();
+        return expenses ;
+    }
+
+    public ArrayList<Expense> getExpensesOfTheDay(){
         DateTime dateTime = new DateTime().withTimeAtStartOfDay();
         long startOfDay = dateTime.getMillis() ;
         long endOfDay = dateTime.plusDays(1).getMillis();
-        return db.rawQuery("select * from " + TABLE_NAME + " where " + EXPENSES_COLUMN_DATE + " > " + startOfDay + " and " + EXPENSES_COLUMN_DATE + " < " + endOfDay , null );
+        return getExpensesBetween(startOfDay , endOfDay);
     }
 
     public Cursor getExpense(int id){
@@ -81,11 +94,6 @@ public class ExpensesTableHandler extends SQLiteOpenHelper{
         SQLiteDatabase db = this.getReadableDatabase();
         return (int)DatabaseUtils.queryNumEntries(db , TABLE_NAME);
     }
-
-    public long getUnixTimeStamp(){
-        return new DateTime().getMillis();
-    }
-
 
     /*
     make an update expense method

@@ -40,11 +40,23 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     static FileOutputStream fileOutputStream ;
 
+    SharedPreferences sharedPreferences;
+
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
         setContentView(R.layout.activity_main);
+
+        sharedPreferences = getSharedPreferences(SignInActivity.getMoneyPreference() , Context.MODE_PRIVATE);
+        if (!sharedPreferences.getBoolean("hasVisited" , false)){
+            startActivity(new Intent(this , SignInActivity.class));
+            SharedPreferences.Editor e = sharedPreferences.edit();
+            e.putBoolean("hasVisited" , true);
+            e.apply();
+        }
+
         final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) , "Expenses.pdf");
         setTheView(file);
 
@@ -53,6 +65,11 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -81,21 +98,17 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         ExpensesTableHandler handler = new ExpensesTableHandler(this);
         EditText name = (EditText) findViewById(R.id.expense_editText);
         EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
-        boolean handled = false ;
-        try {
-            handled = handler.insertExpense(name.getText().toString(), Integer.parseInt(cost.getText().toString()),
-                    category);
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-        }
-        if (!handled){
+        if (name.getText().toString().equals("") && cost.getText().toString().equals("")){
             callSuperToastAlert("Complete all fields");
         }else{
+            Expense expense = new Expense(name.getText().toString() , Double.parseDouble(cost.getText().toString()) , category);
+            handler.insertExpense(expense);
             SuperToast.create(this, "Saved", SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.GREEN ,SuperToast.Animations.SCALE)).show();
-                name.setText("");
-                cost.setText("");
+            name.setText("");
+            cost.setText("");
 
         }
+
 
     }
 
@@ -132,8 +145,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     private void setProfilePicture() {
         CircleImageView circularImageView = (CircleImageView) findViewById(R.id.profile_image);
+        // The picture is from Facebook to get the google+ call mPerson.getImage().getUrl
         Picasso.with(this).load("https://lh5.googleusercontent.com/NIaQOHzHG5OeSRxYJ2tOYi1MC-hJQMuso9Sw7ygH_jU=s591").into(circularImageView);
-        SharedPreferences sharedPreferences = getSharedPreferences(SignInActivity.MONEY_PREFERENCE , Context.MODE_PRIVATE) ;
+        SharedPreferences sharedPreferences = getSharedPreferences(SignInActivity.getMoneyPreference() , Context.MODE_PRIVATE) ;
         String userName = sharedPreferences.getString("userName" , "Null");
         TextView textView = (TextView) findViewById(R.id.profile_textView);
         textView.setText(userName);
@@ -203,6 +217,10 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd\\MM\\yyyy");
         Date date1 = new Date();
         return simpleDateFormat.format(date1);
+    }
+
+    public static FileOutputStream getFileOutputStream() {
+        return fileOutputStream;
     }
 
 }
