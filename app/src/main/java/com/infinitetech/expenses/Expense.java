@@ -12,6 +12,9 @@ public class Expense {
     private String category ;
     private long date ;
 
+    public Expense(String name) {
+        this.name = name;
+    }
 
     public Expense(String name, double price, String category, long date) {
         this.name = name;
@@ -56,7 +59,7 @@ public class Expense {
         return formatted;
     }
 
-    public long getUnixTimeStamp(){
+    private long getUnixTimeStamp(){
         return new DateTime().getMillis();
     }
 }

@@ -12,5 +12,6 @@
         <item>Household</item>
         <item>Personal</item>
     </string-array>
+    <string name="title_activity_send">SendActivity</string>
 
 </resources>

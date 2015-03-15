@@ -51,7 +51,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
         sharedPreferences = getSharedPreferences(SignInActivity.getMoneyPreference() , Context.MODE_PRIVATE);
         if (!sharedPreferences.getBoolean("hasVisited" , false)){
-            startActivity(new Intent(this , SignInActivity.class));
+            //startActivity(new Intent(this , SignInActivity.class));
             SharedPreferences.Editor e = sharedPreferences.edit();
             e.putBoolean("hasVisited" , true);
             e.apply();
@@ -98,7 +98,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         ExpensesTableHandler handler = new ExpensesTableHandler(this);
         EditText name = (EditText) findViewById(R.id.expense_editText);
         EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
-        if (name.getText().toString().equals("") && cost.getText().toString().equals("")){
+        if (name.getText().toString().equals("") || cost.getText().toString().equals("")){
             callSuperToastAlert("Complete all fields");
         }else{
             Expense expense = new Expense(name.getText().toString() , Double.parseDouble(cost.getText().toString()) , category);
@@ -129,7 +129,8 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         sendButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                sendEmail(file);
+                //sendEmail(file);
+                startActivity(new Intent(MainActivity.this , SendActivity.class));
             }
         });
     }
