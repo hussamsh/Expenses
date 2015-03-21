@@ -7,6 +7,10 @@ import android.os.AsyncTask;
 
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
+import com.infinitetech.expenses.ActivityClasses.MainActivity;
+import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
+import com.infinitetech.expenses.SqliteHandlers.IncomeTableHandler;
+import com.infinitetech.expenses.TransactionTypes.Expense;
 import com.itextpdf.text.Document;
 import com.itextpdf.text.DocumentException;
 import com.itextpdf.text.Element;
@@ -33,15 +37,33 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
 
     private void createPdf(Context context) throws DocumentException {
         Document document = new Document();
+        ExpensesTableHandler expensesTableHandler = new ExpensesTableHandler(context);
+        IncomeTableHandler incomeTableHandler = new IncomeTableHandler(context);
         PdfWriter.getInstance(document , MainActivity.getFileOutputStream());
         document.open();
         Paragraph preface = new Paragraph("Expenses of:  " + getDate());
         preface.setAlignment(Element.ALIGN_CENTER);
-        preface.setSpacingAfter(30);
+        preface.setSpacingAfter(10);
         document.add(preface);
+        Paragraph expensesOfTheDay = new Paragraph("Expenses of the day : " + expensesTableHandler.getSpendingOfTheDay()+ " L.E");
+        expensesOfTheDay.setAlignment(Element.ALIGN_CENTER);
+        expensesOfTheDay.setSpacingAfter(10);
+        Paragraph totalExpensesOfMonth = new Paragraph("Expenses of the month : "  + expensesTableHandler.getMonthSpending() + " L.E");
+        totalExpensesOfMonth.setAlignment(Element.ALIGN_RIGHT);
+        Paragraph totalIncomeMonth = new Paragraph("Total Income this month : " + incomeTableHandler.getTotalIncomeInWeek()+ " L.E");
+        totalIncomeMonth.setAlignment(Element.ALIGN_RIGHT);
+        Paragraph expenseOfTheWeek = new Paragraph("Total Expenses Of the week : " + expensesTableHandler.getWeekSpending()+ " L.E");
+        expenseOfTheWeek.setAlignment(Element.ALIGN_LEFT);
+        Paragraph totalIncomeOfWeek = new Paragraph("Total Income this week : " + incomeTableHandler.getTotalIncomeInWeek()+ " L.E");
+        totalIncomeOfWeek.setAlignment(Element.ALIGN_LEFT);
+        totalIncomeOfWeek.setSpacingAfter(30);
+        document.add(expensesOfTheDay);
+        document.add(totalExpensesOfMonth);
+        document.add(totalIncomeMonth);
+        document.add(expenseOfTheWeek);
+        document.add(totalIncomeOfWeek);
         document.add(insertMainRow());
-        ExpensesTableHandler handler = new ExpensesTableHandler(context);
-        for (Expense expense : handler.getExpensesOfTheDay()) {
+        for (Expense expense : expensesTableHandler.getExpensesOfTheDay()) {
             document.add(insertRow(expense));
         }
         document.close();
@@ -50,8 +72,8 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
     private static PdfPTable insertRow (Expense expense) {
         PdfPTable table = new PdfPTable(4);
         table.addCell(new PdfPCell(new Phrase(expense.getName())));
-        table.addCell(new PdfPCell(new Phrase(expense.getPrice() + "")));
-        table.addCell(new PdfPCell(new Phrase(expense.getCategory())));
+        table.addCell(new PdfPCell(new Phrase(expense.getAmount() + "")));
+        table.addCell(new PdfPCell(new Phrase(expense.getCategory().name())));
         table.addCell(new PdfPCell(new Phrase(expense.getFormattedDate())));
         return table ;
     }
