@@ -1,4 +1,4 @@
-package com.infinitetech.expenses;
+package com.infinitetech.expenses.ActivityClasses;
 
 import android.app.Activity;
 import android.content.Context;
@@ -19,6 +19,14 @@ import android.widget.TextView;
 
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
+import com.infinitetech.expenses.ExpensesPdfFactory;
+import com.infinitetech.expenses.R;
+import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
+import com.infinitetech.expenses.SqliteHandlers.IncomeTableHandler;
+import com.infinitetech.expenses.TransactionTypes.Expense;
+import com.infinitetech.expenses.TransactionTypes.Income;
+import com.infinitetech.expenses.enums.ExpenseCategory;
+import com.infinitetech.expenses.enums.MethodOfReceiving;
 import com.squareup.picasso.Picasso;
 
 import java.io.File;
@@ -34,7 +42,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
 
     private static final String TAG = MainActivity.class.getSimpleName();
 
-    private String category ;
+    private ExpenseCategory category ;
 
     private boolean wantsToExit;
 
@@ -95,17 +103,21 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     }
 
     public void save(View v){
-        ExpensesTableHandler handler = new ExpensesTableHandler(this);
+        ExpensesTableHandler expensesTableHandler = new ExpensesTableHandler(this);
+        IncomeTableHandler incomeTableHandler = new IncomeTableHandler(this);
         EditText name = (EditText) findViewById(R.id.expense_editText);
         EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
-        if (name.getText().toString().equals("") || cost.getText().toString().equals("")){
+        EditText income = (EditText) findViewById(R.id.income_edittext);
+        if (name.getText().toString().equals("") || cost.getText().toString().equals("") || income.getText().toString().equals("")){
             callSuperToastAlert("Complete all fields");
         }else{
             Expense expense = new Expense(name.getText().toString() , Double.parseDouble(cost.getText().toString()) , category);
-            handler.insertExpense(expense);
+            expensesTableHandler.insertExpense(expense);
+            incomeTableHandler.insertIncome(new Income(Double.parseDouble(income.getText().toString()) , MethodOfReceiving.Maher_Mostafa ));
             SuperToast.create(this, "Saved", SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.GREEN ,SuperToast.Animations.SCALE)).show();
             name.setText("");
             cost.setText("");
+            income.setText("");
 
         }
 
@@ -133,6 +145,7 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
                 startActivity(new Intent(MainActivity.this , SendActivity.class));
             }
         });
+
     }
 
     private void setTheSpinner() {
@@ -169,13 +182,13 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
         switch ((int) parent.getItemIdAtPosition(position)) {
             case 0:
-                category = "Food";
+                category = ExpenseCategory.Food;
                 break;
             case 1:
-                category = "Household";
+                category = ExpenseCategory.Household;
                 break;
             case 2:
-                category = "Personal";
+                category = ExpenseCategory.Personal;
                 break;
         }
     }

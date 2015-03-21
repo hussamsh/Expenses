@@ -1,4 +1,4 @@
-package com.infinitetech.expenses;
+package com.infinitetech.expenses.ActivityClasses;
 
 import android.app.Activity;
 import android.content.Context;
@@ -21,6 +21,7 @@ import com.google.android.gms.common.SignInButton;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.plus.Plus;
 import com.google.android.gms.plus.model.people.Person;
+import com.infinitetech.expenses.R;
 
 
 public class SignInActivity extends Activity implements  GoogleApiClient.ConnectionCallbacks , GoogleApiClient.OnConnectionFailedListener{

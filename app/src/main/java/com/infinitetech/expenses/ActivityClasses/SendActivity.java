@@ -1,5 +1,6 @@
-package com.infinitetech.expenses;
+package com.infinitetech.expenses.ActivityClasses;
 
+import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -7,9 +8,13 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 
-import java.util.ArrayList;
+import com.dd.CircularProgressButton;
+import com.infinitetech.expenses.ExpenseAdapter;
+import com.infinitetech.expenses.R;
+import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
 
 
 public class SendActivity extends Activity implements AdapterView.OnItemSelectedListener {
@@ -28,18 +33,26 @@ public class SendActivity extends Activity implements AdapterView.OnItemSelected
         ExpensesTableHandler handler = new ExpensesTableHandler(this);
         ExpenseAdapter expenseAdapter = new ExpenseAdapter(handler.getExpensesOfTheDay(), this);
         recyclerView.setAdapter(expenseAdapter);
+
+        final CircularProgressButton button = (CircularProgressButton) findViewById(R.id.send_button_send);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ValueAnimator animator = ValueAnimator.ofInt(1 , 100);
+                animator.setDuration(1000);
+                animator.setInterpolator(new AccelerateDecelerateInterpolator());
+                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
+                    @Override
+                    public void onAnimationUpdate(ValueAnimator animation) {
+                        Integer value = (Integer) animation.getAnimatedValue();
+                        button.setProgress(value);
+                    }
+                });
+                animator.start();
+            }
+        });
     }
 
-    private ArrayList<Expense> createList(int size) {
-
-        ArrayList<Expense> result = new ArrayList<Expense>();
-        for (int i=1; i <= size; i++) {
-            Expense expense = new Expense(i+"");
-            result.add(expense);
-        }
-
-        return result;
-    }
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.

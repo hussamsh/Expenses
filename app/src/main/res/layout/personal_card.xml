@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="150dp"
+    android:background="@drawable/rsz_personal"
+    android:layout_marginBottom="8dp">
+
+    <EditText
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/name_edit"
+        android:background="#60000000"
+        android:gravity="center"
+        android:layout_alignBottom="@+id/category_btn"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true" />
+
+    <EditText
+        android:layout_width="200dp"
+        android:layout_height="wrap_content"
+        android:id="@+id/price_edit"
+        android:background="#60000000"
+        android:inputType="numberDecimal"
+        android:layout_below="@+id/name_edit"
+        android:layout_alignParentLeft="true"
+        android:layout_alignParentStart="true"
+        android:gravity="center" />
+
+
+    <com.dd.CircularProgressButton
+        android:id="@+id/save_edit"
+        android:layout_width="120dp"
+        android:layout_height="50dp"
+        android:textColor="@color/white"
+        android:textSize="18sp"
+        app:cpb_textComplete="Saved"
+        app:cpb_textError="Error"
+        app:cpb_textIdle="Save"
+        app:cpb_cornerRadius="48dp"
+        android:layout_marginRight="35dp"
+        android:layout_marginEnd="35dp"
+        android:layout_marginBottom="10dp"
+        android:layout_alignParentBottom="true"
+        android:layout_alignRight="@+id/price_edit"
+        android:layout_alignEnd="@+id/price_edit" />
+
+    <Button
+        android:layout_width="100dp"
+        android:layout_height="wrap_content"
+        android:text="category"
+        android:layout_marginRight="20dp"
+        android:layout_marginTop="7dp"
+        android:id="@+id/category_btn"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:background="@drawable/rounded"
+        android:textColor="#FFFFFF"/>
+
+</RelativeLayout>

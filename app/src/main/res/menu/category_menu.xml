@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item android:id="@+id/food_itemMenu"
+        android:title="@string/food"
+        android:icon="@drawable/food_ic"/>
+
+    <item android:id="@+id/household_itemMenu"
+        android:title="@string/household"
+        android:icon="@drawable/bill_ic"
+        />
+
+    <item android:id="@+id/personal_itemMenu"
+        android:title="@string/personal"
+        android:icon="@drawable/personal_ic"/>
+
+</menu>
