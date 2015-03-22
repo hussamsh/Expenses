@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.infinitetech.expenses" >
+    package="com.infiniteTech.expenses" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -11,35 +11,39 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/CustomActionBarTheme" >
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name=".ActivityClasses.SignInActivity"
+            android:name="com.infiniteTech.expenses.ActivityClasses.SignInActivity"
             android:label="Sign in"
             android:noHistory="true" >
         </activity>
         <activity
-            android:name=".ActivityClasses.MainActivity"
+            android:name="com.infiniteTech.expenses.ActivityClasses.InsertActivity"
+            android:label="MainActivity" >
+        </activity>
+
+        <receiver android:name="com.infiniteTech.expenses.ExpensesPdfFactory" />
+
+        <activity
+            android:name="com.infiniteTech.expenses.ActivityClasses.SendActivity"
+            android:label="@string/title_activity_send"
+            android:parentActivityName="com.infiniteTech.expenses.ActivityClasses.InsertActivity" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.infiniteTech.expenses.ActivityClasses.InsertActivity" />
+        </activity>
+        <activity
+            android:name="com.infiniteTech.expenses.ActivityClasses.OverviewActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
-
-        <receiver android:name=".ExpensesPdfFactory" />
-
-        <activity
-            android:name=".ActivityClasses.SendActivity"
-            android:label="@string/title_activity_send"
-            android:parentActivityName=".ActivityClasses.MainActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".ActivityClasses.MainActivity" />
         </activity>
     </application>
 

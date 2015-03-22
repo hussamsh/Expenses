@@ -10,11 +10,20 @@
     <string name="household" >Household</string>
     <string name="personal" >Personal</string>
 
-    <string-array name="spinnerArray">
+    <string-array name="expenseSpinnerArray">
         <item>Food</item>
         <item>Household</item>
         <item>Personal</item>
     </string-array>
+
+    <string-array name="incomeSpinnerArray">
+        <item>Maher Mostafa</item>
+        <item>Weird transfer</item>
+        <item>Western union</item>
+        <item>Loan</item>
+    </string-array>
     <string name="title_activity_send">SendActivity</string>
+    <string name="save_button">Save</string>
+    <string name="title_activity_overview">OverviewActivity</string>
 
 </resources>
