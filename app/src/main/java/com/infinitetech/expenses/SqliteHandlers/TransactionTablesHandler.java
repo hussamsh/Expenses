@@ -1,6 +1,7 @@
 package com.infinitetech.expenses.SqliteHandlers;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 
@@ -12,10 +13,12 @@ public abstract class TransactionTablesHandler extends SQLiteOpenHelper{
     private static final String DATABASE_NAME = "Expenses.db";
     private static final int DATABASE_VERSION = 1;
     private boolean tableCreated ;
+    protected static SharedPreferences sharedPreferences = null;
 
 
     public TransactionTablesHandler(Context context) {
         super(context, DATABASE_NAME, null , DATABASE_VERSION);
+        sharedPreferences = context.getSharedPreferences("ExpensesApp" , Context.MODE_PRIVATE);
     }
 
     @Override
@@ -44,4 +47,6 @@ public abstract class TransactionTablesHandler extends SQLiteOpenHelper{
         db.execSQL("Drop table if exists " + IncomeTableHandler.getTableName());
         onCreate(db);
     }
+
+
 }

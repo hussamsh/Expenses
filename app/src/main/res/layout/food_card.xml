@@ -15,8 +15,7 @@
         android:gravity="center"
         android:layout_alignBottom="@+id/category_btn"
         android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:drawableStart="@drawable/bill_ic"/>
+        android:layout_alignParentStart="true"/>
 
     <EditText
         android:layout_width="200dp"

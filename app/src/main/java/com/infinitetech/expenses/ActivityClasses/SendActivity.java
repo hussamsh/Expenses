@@ -1,6 +1,5 @@
 package com.infinitetech.expenses.ActivityClasses;
 
-import android.animation.ValueAnimator;
 import android.app.Activity;
 import android.os.Bundle;
 import android.support.v7.widget.LinearLayoutManager;
@@ -8,16 +7,17 @@ import android.support.v7.widget.RecyclerView;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.AccelerateDecelerateInterpolator;
 import android.widget.AdapterView;
 
-import com.dd.CircularProgressButton;
-import com.infinitetech.expenses.ExpenseAdapter;
+import com.github.johnpersano.supertoasts.SuperToast;
+import com.github.johnpersano.supertoasts.util.Style;
 import com.infinitetech.expenses.R;
+import com.infinitetech.expenses.ExpenseAdapter;
 import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
+import com.software.shell.fab.ActionButton;
 
 
-public class SendActivity extends Activity implements AdapterView.OnItemSelectedListener {
+public class SendActivity extends Activity implements AdapterView.OnItemSelectedListener  {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,21 +34,27 @@ public class SendActivity extends Activity implements AdapterView.OnItemSelected
         ExpenseAdapter expenseAdapter = new ExpenseAdapter(handler.getExpensesOfTheDay(), this);
         recyclerView.setAdapter(expenseAdapter);
 
-        final CircularProgressButton button = (CircularProgressButton) findViewById(R.id.send_button_send);
-        button.setOnClickListener(new View.OnClickListener() {
+        final ActionButton actionButton = (ActionButton) findViewById(R.id.action_button_send);
+        actionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ValueAnimator animator = ValueAnimator.ofInt(1 , 100);
-                animator.setDuration(1000);
-                animator.setInterpolator(new AccelerateDecelerateInterpolator());
-                animator.addUpdateListener(new ValueAnimator.AnimatorUpdateListener() {
-                    @Override
-                    public void onAnimationUpdate(ValueAnimator animation) {
-                        Integer value = (Integer) animation.getAnimatedValue();
-                        button.setProgress(value);
+                callSuperToastAlert("sending");
+            }
+        });
+
+        recyclerView.setOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrolled(RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                if (dy > 0){
+                if (!actionButton.isHidden()){
+                    actionButton.hide();
+                }
+                }else if (dy < 0){
+                    if (actionButton.isHidden()){
+                        actionButton.show();
                     }
-                });
-                animator.start();
+                }
             }
         });
     }
@@ -83,5 +89,8 @@ public class SendActivity extends Activity implements AdapterView.OnItemSelected
     @Override
     public void onNothingSelected(AdapterView<?> parent) {
 
+    }
+    private void callSuperToastAlert(String Text) {
+        SuperToast.create(this, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FADE)).show();
     }
 }

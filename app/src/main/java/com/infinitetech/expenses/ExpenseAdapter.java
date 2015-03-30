@@ -28,6 +28,7 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     private ArrayList<Expense> expenses ;
     private final Context context;
+    private int i = 0 ;
 
 
     public ExpenseAdapter(ArrayList<Expense> expenses , Context context) {
@@ -37,7 +38,21 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
 
     @Override
     public ExpenseViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-        View itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.food_card, parent ,false);
+        View itemView = null ;
+        if (i < expenses.size()){
+            switch (expenses.get(i).getCategory().name()){
+                case "Food":
+                    itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.food_card, parent ,false);
+                    break;
+                case "Household":
+                    itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.household_card, parent ,false);
+                    break;
+                case "Personal":
+                    itemView = LayoutInflater.from(parent.getContext()).inflate(R.layout.personal_card, parent ,false);
+                    break;
+             }
+        }
+        i++;
         return new ExpenseViewHolder(itemView);
     }
 
@@ -77,7 +92,6 @@ public class ExpenseAdapter extends RecyclerView.Adapter<ExpenseAdapter.ExpenseV
     }
 
     private void initDroppyFromXml(final Button button){
-        final String category ;
         DroppyMenuPopup.Builder builder = new DroppyMenuPopup.Builder(context, button);
         DroppyMenuPopup menu = builder.fromMenu(R.menu.category_menu)
                 .triggerOnAnchorClick(false)

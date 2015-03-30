@@ -2,8 +2,10 @@ package com.infinitetech.expenses.SqliteHandlers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
 import com.infinitetech.expenses.TransactionTypes.Income;
 import com.infinitetech.expenses.enums.MethodOfReceiving;
@@ -19,7 +21,6 @@ import java.util.ArrayList;
 
 public class IncomeTableHandler extends TransactionTablesHandler {
     private static final String TAG = IncomeTableHandler.class.getSimpleName();
-    private boolean tableCreated ;
     private static final String TABLE_NAME = "income";
     private static final String COLUMN_AMOUNT = "amount";
     private static final String COLUMN_METHOD_OF_RECEIVING = "method";
@@ -49,6 +50,17 @@ public class IncomeTableHandler extends TransactionTablesHandler {
         cv.put(COLUMN_METHOD_OF_RECEIVING , income.getMethodOfReceiving().name());
 
         sqLiteDatabase.insert(TABLE_NAME , null , cv);
+
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        e.putString("remaining" , (Double.parseDouble(sharedPreferences.getString("remaining" , "0.0"))+income.getAmount())+"");
+        e.putString("latest Income" , income.getDate()+"");
+        e.apply();
+    }
+
+    public Income getLatestIncome(){
+        long latestDate = Long.parseLong(sharedPreferences.getString("latest Income", "0.0"));
+        Log.i(TAG , latestDate+"");
+        return getIncome(latestDate);
     }
 
     public void editIncome(double amount , MethodOfReceiving methodOfReceiving , long date ){
@@ -63,12 +75,23 @@ public class IncomeTableHandler extends TransactionTablesHandler {
 
     public Income getIncome(long date){
         SQLiteDatabase db = this.getReadableDatabase();
-        Cursor c = db.rawQuery("select * from " + TABLE_NAME + " where " + COLUMN_DATE + " = " + date, null);
+        Cursor c = db.query(TABLE_NAME , null , COLUMN_DATE + " = " + date , null , null , null , null );
+        c.moveToFirst();
         double amount = c.getDouble(c.getColumnIndex(COLUMN_AMOUNT));
         MethodOfReceiving methodOfReceiving = getMethodOfReceiving(c.getString(c.getColumnIndex(COLUMN_METHOD_OF_RECEIVING)));
         c.close();
         db.close();
         return new Income(amount , date , methodOfReceiving);
+    }
+
+    public void deleteIncome(Income income){
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete(TABLE_NAME , COLUMN_DATE + " = " + income.getDate(), null);
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        e.putString("remaining" , (Double.parseDouble(sharedPreferences.getString("remaining" , "0.0")) - income.getAmount())+"");
+        e.apply();
+        db.close();
+
     }
 
     public ArrayList<Income> getIncomeBetween(long startDate , long endDate){

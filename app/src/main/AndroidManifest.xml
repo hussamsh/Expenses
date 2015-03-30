@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.infiniteTech.expenses" >
+    package="com.infinitetech.expenses" >
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
@@ -11,33 +11,28 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/CustomActionBarTheme" >
+        android:theme="@style/Theme.AppCompat.Light.NoActionBar" >
         <meta-data
             android:name="com.google.android.gms.version"
             android:value="@integer/google_play_services_version" />
 
         <activity
-            android:name="com.infiniteTech.expenses.ActivityClasses.SignInActivity"
-            android:label="Sign in"
-            android:noHistory="true" >
-        </activity>
-        <activity
-            android:name="com.infiniteTech.expenses.ActivityClasses.InsertActivity"
+            android:name="com.infinitetech.expenses.ActivityClasses.InsertActivity"
             android:label="MainActivity" >
         </activity>
 
-        <receiver android:name="com.infiniteTech.expenses.ExpensesPdfFactory" />
+        <receiver android:name="com.infinitetech.expenses.ExpensesPdfFactory" />
 
         <activity
-            android:name="com.infiniteTech.expenses.ActivityClasses.SendActivity"
+            android:name="com.infinitetech.expenses.ActivityClasses.SendActivity"
             android:label="@string/title_activity_send"
-            android:parentActivityName="com.infiniteTech.expenses.ActivityClasses.InsertActivity" >
+            android:parentActivityName="com.infinitetech.expenses.ActivityClasses.InsertActivity" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.infiniteTech.expenses.ActivityClasses.InsertActivity" />
+                android:value="com.infinitetech.expenses.ActivityClasses.InsertActivity" />
         </activity>
         <activity
-            android:name="com.infiniteTech.expenses.ActivityClasses.OverviewActivity"
+            android:name=".ActivityClasses.MainActivity"
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

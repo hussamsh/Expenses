@@ -1,78 +1,80 @@
 package com.infinitetech.expenses.ActivityClasses;
 
-import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
-import android.net.Uri;
+import android.graphics.Color;
 import android.os.Bundle;
-import android.os.Environment;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
+import android.support.v7.app.ActionBarActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Spinner;
-import android.widget.TextView;
 
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
-import com.infinitetech.expenses.ExpensesPdfFactory;
 import com.infinitetech.expenses.R;
-import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
-import com.infinitetech.expenses.SqliteHandlers.IncomeTableHandler;
-import com.infinitetech.expenses.TransactionTypes.Expense;
-import com.infinitetech.expenses.TransactionTypes.Income;
-import com.infinitetech.expenses.enums.ExpenseCategory;
-import com.infinitetech.expenses.enums.MethodOfReceiving;
-import com.squareup.picasso.Picasso;
+import com.mikepenz.materialdrawer.Drawer;
+import com.mikepenz.materialdrawer.model.PrimaryDrawerItem;
+import com.mikepenz.materialdrawer.model.interfaces.IDrawerItem;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
-import de.hdodenhof.circleimageview.CircleImageView;
-
-
-public class MainActivity extends Activity implements AdapterView.OnItemSelectedListener{
-
-    private static final String TAG = MainActivity.class.getSimpleName();
-
-    private ExpenseCategory category ;
+public class MainActivity extends ActionBarActivity implements OverviewFragment.OnFragmentInteractionListener {
 
     private boolean wantsToExit;
-
-    static FileOutputStream fileOutputStream ;
-
-    SharedPreferences sharedPreferences;
-
-
+    private Drawer.Result result;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        inflateFragment(new OverviewFragment());
 
-        sharedPreferences = getSharedPreferences(SignInActivity.getMoneyPreference() , Context.MODE_PRIVATE);
-        if (!sharedPreferences.getBoolean("hasVisited" , false)){
-            //startActivity(new Intent(this , SignInActivity.class));
-            SharedPreferences.Editor e = sharedPreferences.edit();
-            e.putBoolean("hasVisited" , true);
-            e.apply();
-        }
+        final Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar_overview);
+        toolbar.setTitleTextColor(Color.WHITE);
+        setSupportActionBar(toolbar);
 
-        final File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) , "Expenses.pdf");
-        setTheView(file);
 
-        try {
-            fileOutputStream = new FileOutputStream(file);
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+        result = new Drawer().withActivity(this)
+                .withToolbar(toolbar)
+                .withHeader(R.layout.navigationbar_header)
+                .addDrawerItems(
+                        new PrimaryDrawerItem().withName("Overview"),
+                        new PrimaryDrawerItem().withName("Add Transaction"),
+                        new PrimaryDrawerItem().withName("View Expenses"),
+                        new PrimaryDrawerItem().withName("View Income")
+                )
+                .withOnDrawerItemClickListener(new Drawer.OnDrawerItemClickListener() {
+                    @Override
+                    public void onItemClick(AdapterView<?> adapterView, View view, int i, long l, IDrawerItem iDrawerItem) {
+                        switch (i){
+                            case 0:
+                                inflateFragment(new OverviewFragment());
+                                break;
+                            case 1:
+                                startActivity(new Intent(MainActivity.this , InsertActivity.class));
+                                break;
+                            case 2:
+                                inflateFragment(new ExpensesFragment());
+                                break;
+                            case 3:
+                                inflateFragment(new IncomeFragment());
+                                break;
+                            default:
+                                callSuperToast("Invalid");
+                        }
+                    }
+                })
+                .build();
+        getSupportActionBar().setDisplayHomeAsUpEnabled(false);
+        result.getActionBarDrawerToggle().setDrawerIndicatorEnabled(true);
+    }
+
+    private void inflateFragment(Fragment fragment){
+        FragmentTransaction ft = getSupportFragmentManager().beginTransaction();
+        ft.setCustomAnimations(R.anim.abc_grow_fade_in_from_bottom , R.anim.abc_shrink_fade_out_from_bottom);
+        ft.replace(R.id.frameLayout_main, fragment);
+        ft.commit();
     }
 
     @Override
@@ -80,11 +82,43 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         super.onResume();
     }
 
+
+
+    @Override
+    public void onFragmentInteraction() {
+        callSuperToast("Inflated");
+    }
+
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_overview, menu);
         return true;
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (result.isDrawerOpen()){
+            result.closeDrawer();
+        }else{
+            if (!wantsToExit){
+                wantsToExit = true ;
+                callSuperToast("Press back again to Exit");
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        try {
+                            Thread.sleep(SuperToast.Duration.SHORT);
+                            wantsToExit = false ;
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                }).start();
+            }else {
+                super.onBackPressed();
+            }
+        }
     }
 
     @Override
@@ -102,139 +136,9 @@ public class MainActivity extends Activity implements AdapterView.OnItemSelected
         return super.onOptionsItemSelected(item);
     }
 
-    public void save(View v){
-        ExpensesTableHandler expensesTableHandler = new ExpensesTableHandler(this);
-        IncomeTableHandler incomeTableHandler = new IncomeTableHandler(this);
-        EditText name = (EditText) findViewById(R.id.expense_editText);
-        EditText cost = (EditText) findViewById(R.id.expense_amount_editText);
-        EditText income = (EditText) findViewById(R.id.income_edittext);
-        if (name.getText().toString().equals("") || cost.getText().toString().equals("") || income.getText().toString().equals("")){
-            callSuperToastAlert("Complete all fields");
-        }else{
-            Expense expense = new Expense(name.getText().toString() , Double.parseDouble(cost.getText().toString()) , category);
-            expensesTableHandler.insertExpense(expense);
-            incomeTableHandler.insertIncome(new Income(Double.parseDouble(income.getText().toString()) , MethodOfReceiving.Maher_Mostafa ));
-            SuperToast.create(this, "Saved", SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.GREEN ,SuperToast.Animations.SCALE)).show();
-            name.setText("");
-            cost.setText("");
-            income.setText("");
-
-        }
-
-
+    private void callSuperToast(String Text) {
+        SuperToast.create(this, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.BLUE, SuperToast.Animations.FADE)).show();
     }
 
-    private void setTheView(final File file) {
-        setTheSpinner();
-        setProfilePicture();
-        Button saveButton = (Button) findViewById(R.id.save_button);
-        saveButton.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View v) {
-                Intent intent = new Intent();
-                intent.setClass(MainActivity.this , ExpensesPdfFactory.class);
-                MainActivity.this.sendBroadcast(intent);
-                return true ;
-            }
-        });
-        Button sendButton = (Button) findViewById(R.id.send_button);
-        sendButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                //sendEmail(file);
-                startActivity(new Intent(MainActivity.this , SendActivity.class));
-            }
-        });
-
-    }
-
-    private void setTheSpinner() {
-        Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this, R.array.spinnerArray ,
-                android.R.layout.simple_spinner_item);
-        adapter.setDropDownViewResource(android.R.layout.simple_dropdown_item_1line);
-        spinner.setAdapter(adapter);
-        spinner.setOnItemSelectedListener(this);
-    }
-
-    private void setProfilePicture() {
-        CircleImageView circularImageView = (CircleImageView) findViewById(R.id.profile_image);
-        // The picture is from Facebook to get the google+ call mPerson.getImage().getUrl
-        Picasso.with(this).load("https://lh5.googleusercontent.com/NIaQOHzHG5OeSRxYJ2tOYi1MC-hJQMuso9Sw7ygH_jU=s591").into(circularImageView);
-        SharedPreferences sharedPreferences = getSharedPreferences(SignInActivity.getMoneyPreference() , Context.MODE_PRIVATE) ;
-        String userName = sharedPreferences.getString("userName" , "Null");
-        TextView textView = (TextView) findViewById(R.id.profile_textView);
-        textView.setText(userName);
-    }
-
-    public void sendEmail(File file){
-            String[] to = {"hussamshhassan@gmail.com"};
-            Intent emailIntent = new Intent(Intent.ACTION_SEND);
-            emailIntent.setData(Uri.parse("mailto:"));
-            emailIntent.setType("text/plain");
-            emailIntent.putExtra(Intent.EXTRA_EMAIL , to);
-            emailIntent.putExtra(Intent.EXTRA_SUBJECT , "Expenses of Day: " + getDate());
-            emailIntent.putExtra(Intent.EXTRA_TEXT , "");
-            emailIntent.putExtra(Intent.EXTRA_STREAM , Uri.fromFile(file));
-            startActivity(Intent.createChooser(emailIntent, "Send Expenses email:..... "));
-    }
-    @Override
-    public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        switch ((int) parent.getItemIdAtPosition(position)) {
-            case 0:
-                category = ExpenseCategory.Food;
-                break;
-            case 1:
-                category = ExpenseCategory.Household;
-                break;
-            case 2:
-                category = ExpenseCategory.Personal;
-                break;
-        }
-    }
-
-    @Override
-    public void onNothingSelected(AdapterView<?> parent) {
-        callSuperToastAlert("Select something");
-    }
-
-    @Override
-    public void onBackPressed() {
-        if (!wantsToExit){
-            wantsToExit = true ;
-            callSuperToastAlert("Press back again to Exit");
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        Thread.sleep(2000);
-                        wantsToExit = false ;
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }).start();
-        }else {
-            super.onBackPressed();
-        }
-    }
-
-    private void callSuperToastNormal(String Text) {
-        SuperToast.create(this, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.BLUE, SuperToast.Animations.FLYIN)).show();
-    }
-
-    private void callSuperToastAlert(String Text) {
-        SuperToast.create(this, Text, SuperToast.Duration.VERY_SHORT, Style.getStyle(Style.RED, SuperToast.Animations.FADE)).show();
-    }
-
-    private String getDate(){
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("dd\\MM\\yyyy");
-        Date date1 = new Date();
-        return simpleDateFormat.format(date1);
-    }
-
-    public static FileOutputStream getFileOutputStream() {
-        return fileOutputStream;
-    }
 
 }

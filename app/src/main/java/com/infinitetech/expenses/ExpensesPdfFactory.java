@@ -3,11 +3,12 @@ package com.infinitetech.expenses;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.AsyncTask;
 
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
-import com.infinitetech.expenses.ActivityClasses.MainActivity;
+import com.infinitetech.expenses.ActivityClasses.InsertActivity;
 import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
 import com.infinitetech.expenses.SqliteHandlers.IncomeTableHandler;
 import com.infinitetech.expenses.TransactionTypes.Expense;
@@ -39,7 +40,8 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
         Document document = new Document();
         ExpensesTableHandler expensesTableHandler = new ExpensesTableHandler(context);
         IncomeTableHandler incomeTableHandler = new IncomeTableHandler(context);
-        PdfWriter.getInstance(document , MainActivity.getFileOutputStream());
+        SharedPreferences sharedPreferences = context.getSharedPreferences("ExpensesApp" , Context.MODE_PRIVATE);
+        PdfWriter.getInstance(document, InsertActivity.getFileOutputStream());
         document.open();
         Paragraph preface = new Paragraph("Expenses of:  " + getDate());
         preface.setAlignment(Element.ALIGN_CENTER);
@@ -48,6 +50,9 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
         Paragraph expensesOfTheDay = new Paragraph("Expenses of the day : " + expensesTableHandler.getSpendingOfTheDay()+ " L.E");
         expensesOfTheDay.setAlignment(Element.ALIGN_CENTER);
         expensesOfTheDay.setSpacingAfter(10);
+        Paragraph remainingMoney = new Paragraph("Remaining Money : " +  sharedPreferences.getString("remaining" , "0.0"));
+        remainingMoney.setAlignment(Element.ALIGN_CENTER);
+        remainingMoney.setSpacingAfter(20);
         Paragraph totalExpensesOfMonth = new Paragraph("Expenses of the month : "  + expensesTableHandler.getMonthSpending() + " L.E");
         totalExpensesOfMonth.setAlignment(Element.ALIGN_RIGHT);
         Paragraph totalIncomeMonth = new Paragraph("Total Income this month : " + incomeTableHandler.getTotalIncomeInWeek()+ " L.E");
@@ -58,6 +63,7 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
         totalIncomeOfWeek.setAlignment(Element.ALIGN_LEFT);
         totalIncomeOfWeek.setSpacingAfter(30);
         document.add(expensesOfTheDay);
+        document.add(remainingMoney);
         document.add(totalExpensesOfMonth);
         document.add(totalIncomeMonth);
         document.add(expenseOfTheWeek);

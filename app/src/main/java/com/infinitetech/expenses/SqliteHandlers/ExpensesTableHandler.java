@@ -2,6 +2,7 @@ package com.infinitetech.expenses.SqliteHandlers;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
@@ -49,6 +50,10 @@ public class ExpensesTableHandler extends TransactionTablesHandler{
             cv.put(COLUMN_DATE, expense.getDate());
 
             sqLiteDatabase.insert(TABLE_NAME , null , cv);
+
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        e.putString("remaining" , (Double.parseDouble(sharedPreferences.getString("remaining" , "0.0")) - expense.getAmount())+"");
+        e.apply();
     }
 
     public Expense getExpense(long date){
@@ -62,6 +67,16 @@ public class ExpensesTableHandler extends TransactionTablesHandler{
         db.close();
         return new Expense(name , price , category , expenseDate);
        }
+
+    public void deleteExpense(Expense expense){
+        SQLiteDatabase db = this.getReadableDatabase();
+        db.delete(TABLE_NAME , COLUMN_DATE + " = " + expense.getDate() , null);
+        SharedPreferences.Editor e = sharedPreferences.edit();
+        e.putString("remaining" , (Double.parseDouble(sharedPreferences.getString("remaining" , "0.0")) + expense.getAmount())+"");
+        e.apply();
+        db.close();
+    }
+
 
     public void editExpense(String name , double price , String category , long date){
         SQLiteDatabase db = this.getReadableDatabase();
