@@ -21,16 +21,13 @@
             android:label="MainActivity" >
         </activity>
 
-        <receiver android:name="com.infinitetech.expenses.ExpensesPdfFactory" />
+        <receiver android:name="com.infinitetech.expenses.ExpensesPdfFactory">
+            <intent-filter>
+                <action android:name="android.intent.action.CREATE_PDF" />
+            </intent-filter>
+        </receiver>
 
-        <activity
-            android:name="com.infinitetech.expenses.ActivityClasses.SendActivity"
-            android:label="@string/title_activity_send"
-            android:parentActivityName="com.infinitetech.expenses.ActivityClasses.InsertActivity" >
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value="com.infinitetech.expenses.ActivityClasses.InsertActivity" />
-        </activity>
+
         <activity
             android:name=".ActivityClasses.MainActivity"
             android:label="@string/app_name" >

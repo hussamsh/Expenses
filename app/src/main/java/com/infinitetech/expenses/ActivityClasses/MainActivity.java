@@ -24,6 +24,7 @@ public class MainActivity extends ActionBarActivity implements OverviewFragment.
     private boolean wantsToExit;
     private Drawer.Result result;
 
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

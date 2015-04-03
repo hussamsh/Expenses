@@ -5,10 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.os.AsyncTask;
+import android.os.Environment;
 
 import com.github.johnpersano.supertoasts.SuperToast;
 import com.github.johnpersano.supertoasts.util.Style;
-import com.infinitetech.expenses.ActivityClasses.InsertActivity;
 import com.infinitetech.expenses.SqliteHandlers.ExpensesTableHandler;
 import com.infinitetech.expenses.SqliteHandlers.IncomeTableHandler;
 import com.infinitetech.expenses.TransactionTypes.Expense;
@@ -21,6 +21,9 @@ import com.itextpdf.text.pdf.PdfPCell;
 import com.itextpdf.text.pdf.PdfPTable;
 import com.itextpdf.text.pdf.PdfWriter;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -29,8 +32,20 @@ import java.util.Date;
  */
 public class ExpensesPdfFactory extends BroadcastReceiver{
 
+    static FileOutputStream fileOutputStream ;
+    Context context;
+    static File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS) , "Expenses.pdf");
+
     @Override
     public void onReceive(Context context, Intent intent) {
+        this.context = context;
+
+        try {
+            fileOutputStream = new FileOutputStream(file);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+
             createPdfTask createPdfTask = new createPdfTask();
             createPdfTask.execute(context);
     }
@@ -41,7 +56,7 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
         ExpensesTableHandler expensesTableHandler = new ExpensesTableHandler(context);
         IncomeTableHandler incomeTableHandler = new IncomeTableHandler(context);
         SharedPreferences sharedPreferences = context.getSharedPreferences("ExpensesApp" , Context.MODE_PRIVATE);
-        PdfWriter.getInstance(document, InsertActivity.getFileOutputStream());
+        PdfWriter.getInstance(document, fileOutputStream);
         document.open();
         Paragraph preface = new Paragraph("Expenses of:  " + getDate());
         preface.setAlignment(Element.ALIGN_CENTER);
@@ -104,11 +119,8 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
 
     private class createPdfTask extends AsyncTask<Context ,Void ,Void>{
 
-        Context context ;
-
         @Override
         protected Void doInBackground(Context... params) {
-            context = params[0];
             try {
                 createPdf(context);
             } catch (DocumentException e) {
@@ -119,13 +131,16 @@ public class ExpensesPdfFactory extends BroadcastReceiver{
 
         @Override
         protected void onPostExecute(Void aVoid) {
-            callSuperToastNormal("File created just Hit send", context);
+            callSuperToastNormal("File created");
         }
 
     }
 
-    private void callSuperToastNormal(String Text, Context context) {
+    private void callSuperToastNormal(String Text) {
         SuperToast.create(context, Text, SuperToast.Duration.SHORT, Style.getStyle(Style.GREEN, SuperToast.Animations.SCALE)).show();
     }
 
+    public static File getFile() {
+        return file;
+    }
 }
